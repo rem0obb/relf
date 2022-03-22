@@ -1,27 +1,33 @@
+/**
+*  @brief example usage library relf.h
+*/
+
 #include "include/relf.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <endian.h>
 
 int main(int argc, char *argv[])
 {
-	struct I_ELF elf;
+	struct ELF elf;
 
-	const char* path = argv[1];
-	// if format elf
-	if(PElf(path) == ELF_VALID)
+	if(PElf(argv[1]) == ELF_VALID)
 	{
-		IElf(&elf); // get 16 bytes infos
+		ElfStruct(&elf); // get 16 bytes infos
 
 		puts("Elf Header :");
 
 		// magic header elf
-		printf(" Magic: ");
+		printf(" Magic:");
 		for(int8_t i =0; i < EI_NIDENT ; i++)
-			printf(" %02x", ptrElfMagic()[i]);
+			printf(" %02x", ElfMagic()[i]);
 		puts(""); // \n
 
-		printf(" Version: 0x%x\n", elf.version);
+		if(elf.eversion == EV_CURRENT)
+			printf(" Version: %i (Current)\n", elf.eversion);
+		else
+			printf(" Version: %i \n", elf.eversion);
+
 		printf(" Abi Version: 0x%x\n", elf.abiversion);
 
 		// class elf 64 or 32
@@ -41,11 +47,12 @@ int main(int argc, char *argv[])
 		switch(elf.data)
 		{
 			case ELFDATA2MSB:
-				puts(" Data: 2's complement, Big endian");
+				puts(" Data: Big endian");
 				break;
 			case ELFDATA2LSB:
-				puts(" Data: 2's complement, Little endian");
+				puts(" Data: Little endian");
 				break;
+
 			default:
 				puts(" Data: unknown");
 		}
@@ -82,12 +89,6 @@ int main(int argc, char *argv[])
 			case ELFOSABI_OPENBSD:
 				puts(" Os/Abi: Open BSD");
 				break;
-			case ELFOSABI_OPENVMS:
-				puts(" Os/Abi: Open VMS");
-				break;
-			case ELFOSABI_NSK:
-				puts(" Os/Abi: Hewlett-Packard Non-Stop Kernel");
-				break;
 			case ELFOSABI_SYSV:
 				puts(" Os/Abi: Unix - System V");
 				break;
@@ -96,7 +97,68 @@ int main(int argc, char *argv[])
 
 		}
 
-	}
+		switch(elf.type)
+		{
+			case ET_REL:
+				puts(" Type: Relocatable file");
+				break;
+			case ET_EXEC:
+				puts(" Type: Executable file");
+				break;
+			case ET_DYN:
+				puts(" Type: Shared object file");
+				break;
+			case ET_CORE:
+				puts(" Type: Core file");
+				break;
+			case ET_HIOS:
+			case ET_LOOS:
+				puts(" Type: Operating system-specific");
+				break;
+			case ET_LOPROC:
+			case ET_HIPROC:
+				puts(" Type: Processor-specific");
+				break;
+			default:
+				puts(" Type: unknown");
+
+		}
+
+		switch(elf.machine)
+		{
+			case EM_M32:
+				puts(" Machine: AT&T WE 32100");
+				break;
+			case EM_SPARC:
+				puts(" Machine: SPARC");
+				break;
+			case EM_PPC64:
+				puts(" Machine: 64-bit PowerPC");
+				break;
+			case EM_X86_64:
+				puts(" Machine: x86-64 Architecture");
+				break;
+			case EM_386:
+				puts(" Machine: x86-32 Architecture");
+				break;
+			case EM_ARM:
+				puts(" Machine: Advanced RISC Machines ARM");
+				break;
+			case EM_MIPS:
+				puts(" Machine: MIPS Architecture");
+				break;
+
+			default:
+				puts(" Machine: unknown");
+		}
+
+		printf(" Entry Point: 0x%x\n", elf.entry);
+		printf(" Start of program headers: %i\n", elf.phoff);
+		printf(" Start of section headers: %i\n", elf.shoff);
+
+	}else
+		fprintf(stderr,"%s:  formatted doesn't look like an elf \n", argv[0]);
+
 
 	return 0;
 }
