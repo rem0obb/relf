@@ -20,6 +20,35 @@ const char *ElfPointer; //  pointer for  ElfMap
 Elf64_Ehdr *elf64Header; // elf header 64
 Elf32_Ehdr *elf32Header; // elf header 32
 
+static void SwapEndian64 ( )
+{
+  elf64Header->e_type = bswap_16 ( elf64Header->e_type );
+  elf64Header->e_entry = bswap_64 ( elf64Header->e_entry );
+  elf64Header->e_version = bswap_32 ( elf64Header->e_version );
+  elf64Header->e_shstrndx = bswap_16 ( elf64Header->e_shstrndx );
+  elf64Header->e_shnum = bswap_16 ( elf64Header->e_shnum );
+  elf64Header->e_shoff = bswap_64 ( elf64Header->e_shoff );
+  elf64Header->e_phentsize = bswap_16 ( elf64Header->e_phentsize );
+  elf64Header->e_flags = bswap_16 ( elf64Header->e_flags );
+  elf64Header->e_machine = bswap_16 ( elf64Header->e_machine );
+  elf64Header->e_phoff = bswap_64 ( elf64Header->e_phoff );
+}
+
+static void SwapEndian32()
+{
+  elf32Header->e_type = bswap_16 ( elf32Header->e_type );
+  elf32Header->e_entry = bswap_32 ( elf32Header->e_entry );
+  elf32Header->e_version = bswap_32 ( elf32Header->e_version );
+  elf32Header->e_shstrndx = bswap_16 ( elf32Header->e_shstrndx );
+  elf32Header->e_shnum = bswap_16 ( elf32Header->e_shnum );
+  elf32Header->e_shoff = bswap_32 ( elf32Header->e_shoff );
+  elf32Header->e_phentsize = bswap_16 ( elf32Header->e_phentsize );
+  elf32Header->e_flags = bswap_16 ( elf32Header->e_flags );
+  elf32Header->e_machine = bswap_16 ( elf32Header->e_machine );
+  elf32Header->e_phoff = bswap_32 ( elf32Header->e_phoff );
+}
+
+
 /**
 * @brief elf header
 * @param [in] p_elf64Header struct for usage elf header
@@ -27,19 +56,26 @@ Elf32_Ehdr *elf32Header; // elf header 32
 */
 void ElfStruct ( struct SELF *p_elf )
 {
-  if ( elf64Header->e_ident[EI_CLASS] == ELFCLASS32 ){
+  // verify endian
+  if ( elf64Header->e_ident[EI_DATA] != ELFDATANATIVE )
+  {
+    if ( elf64Header->e_ident[EI_CLASS] == ELFCLASS64 )
+      SwapEndian64();
+    else
+      SwapEndian32();
+  }
+
+
+  if ( elf64Header->e_ident[EI_CLASS] == ELFCLASS32 )
+  {
     p_elf->elf32Header = elf32Header;
     p_elf->classElf = ELFCLASS32;
-  }else{
+  }
+  else
+  {
     p_elf->elf64Header = elf64Header;
     p_elf->classElf = ELFCLASS64;
   }
-  // verify endian
-  if ( elf64Header->e_ident[EI_DATA] != ELFDATANATIVE )
-  {     
-    
-  }
-  
 }
 
 /**
@@ -78,7 +114,7 @@ int PElf ( const char *p_path )
     fstat ( fd, &sb ); // get size file for mapping
 
     // mapper file ELF
-    ElfPointer = mmap ( NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0 );
+    ElfPointer = mmap ( NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0 );
 
     if ( ElfPointer == MAP_FAILED )
     {
@@ -88,8 +124,9 @@ int PElf ( const char *p_path )
     else
     {
       elf64Header = ( Elf64_Ehdr * ) ElfPointer;
-      if(elf64Header->e_ident[EI_CLASS] == ELFCLASS32)
-          elf32Header = (Elf32_Ehdr*)elf64Header;
+
+      if ( elf64Header->e_ident[EI_CLASS] == ELFCLASS32 )
+        elf32Header = ( Elf32_Ehdr * ) elf64Header;
 
       if ( VElfMagic() == true ) // elf valid
         status_exit = ELF_VALID;
