@@ -3,7 +3,7 @@
 * @author VitorMob
 * @date 13 Mar 2022
 * @copyright 2022 VitorMob
-* @brief simple parser for analisys binary ELF
+* @brief simple parser for analisys binary ELF for student
 */
 
 #pragma once
@@ -17,6 +17,7 @@
 #include "datastructs/structs.h"
 
 //=================== functions usage for parser elf ===================
-int PElf(const char*); 		  // pass elf for analisys
-void ElfStruct(struct ELF *); // get header information elf
-char* ElfMagic(); 			  // return pointer array magic elf
+int PElf ( const char * );    // pass elf for analisys
+void ElfStruct ( struct ELF * ); // get header information elf
+char *ElfMagic();             // return pointer array magic elf
+
