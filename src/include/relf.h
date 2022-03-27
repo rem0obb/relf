@@ -14,10 +14,16 @@
 #include <elf.h>
 
 #include "datastructs/erros.h"
-#include "datastructs/structs.h"
+
+
+struct SELF
+{
+  Elf32_Ehdr *elf32Header;
+  Elf64_Ehdr *elf64Header;
+  int classElf;
+};
 
 //=================== functions usage for parser elf ===================
 int PElf ( const char * );    // pass elf for analisys
-void ElfStruct ( struct ELF * ); // get header information elf
-char *ElfMagic();             // return pointer array magic elf
-
+void ElfStruct ( struct SELF* ); // get header information elf
+char *ElfMagic(); // return pointer array magic elf

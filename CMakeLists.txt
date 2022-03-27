@@ -21,7 +21,7 @@ endif()
 
 set(PROJECT_SOURCES
 
-	src/main.c
+        ExampleElf64Parser/main.c
 
 	src/include/relf.c
 	src/include/relf.h
